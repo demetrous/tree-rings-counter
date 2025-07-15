@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSAP Animation Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .animation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .animation-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .animation-box:hover {
+            transform: scale(1.05);
+        }
+
+        .box-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .box-description {
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .animated-element {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        .floating-circles {
+            position: fixed;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .circle {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 0 1rem;
+            transition: transform 0.2s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .morphing-shape {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            margin: 0 auto;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-circles">
+        <div class="circle" style="top: 10%; left: 10%;"></div>
+        <div class="circle" style="top: 20%; right: 15%;"></div>
+        <div class="circle" style="bottom: 30%; left: 20%;"></div>
+        <div class="circle" style="bottom: 10%; right: 10%;"></div>
+        <div class="circle" style="top: 50%; left: 50%;"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="title">GSAP Animation Demo</h1>
+            <p class="subtitle">Explore the power of GreenSock Animation Platform</p>
+        </div>
+
+        <div class="animation-grid">
+            <div class="animation-box" data-animation="bounce">
+                <h3 class="box-title">Bounce</h3>
+                <p class="box-description">Click to see bouncing animation</p>
+                <div class="animated-element bounce-element"></div>
+            </div>
+
+            <div class="animation-box" data-animation="rotate">
+                <h3 class="box-title">Rotate</h3>
+                <p class="box-description">Click to see rotation animation</p>
+                <div class="animated-element rotate-element"></div>
+            </div>
+
+            <div class="animation-box" data-animation="scale">
+                <h3 class="box-title">Scale</h3>
+                <p class="box-description">Click to see scaling animation</p>
+                <div class="animated-element scale-element"></div>
+            </div>
+
+            <div class="animation-box" data-animation="morph">
+                <h3 class="box-title">Morph</h3>
+                <p class="box-description">Click to see morphing animation</p>
+                <div class="morphing-shape"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="playAll">Play All Animations</button>
+            <button class="btn" id="resetAll">Reset All</button>
+        </div>
+    </div>
+
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <script>
+        // Initial page load animations
+        gsap.timeline()
+            .to(".title", {
+                duration: 1,
+                opacity: 1,
+                y: 0,
+                ease: "power2.out"
+            })
+            .to(".subtitle", {
+                duration: 0.8,
+                opacity: 1,
+                y: 0,
+                ease: "power2.out"
+            }, "-=0.5")
+            .to(".animation-box", {
+                duration: 0.6,
+                opacity: 1,
+                scale: 1,
+                stagger: 0.2,
+                ease: "back.out(1.7)"
+            }, "-=0.3")
+            .to(".btn", {
+                duration: 0.5,
+                opacity: 1,
+                y: 0,
+                stagger: 0.1,
+                ease: "power2.out"
+            }, "-=0.2");
+
+        // Floating circles animation
+        gsap.to(".circle", {
+            duration: 3,
+            opacity: 0.3,
+            scale: 1.5,
+            rotation: 360,
+            repeat: -1,
+            yoyo: true,
+            stagger: 0.5,
+            ease: "power2.inOut"
+        });
+
+        // Individual animation functions
+        function bounceAnimation() {
+            gsap.to(".bounce-element", {
+                duration: 0.6,
+                y: -30,
+                repeat: 3,
+                yoyo: true,
+                ease: "bounce.out"
+            });
+        }
+
+        function rotateAnimation() {
+            gsap.to(".rotate-element", {
+                duration: 1,
+                rotation: 360,
+                ease: "power2.inOut"
+            });
+        }
+
+        function scaleAnimation() {
+            gsap.to(".scale-element", {
+                duration: 0.8,
+                scale: 1.5,
+                repeat: 1,
+                yoyo: true,
+                ease: "elastic.out(1, 0.3)"
+            });
+        }
+
+        function morphAnimation() {
+            const tl = gsap.timeline();
+            tl.to(".morphing-shape", {
+                duration: 0.5,
+                borderRadius: "50%",
+                rotation: 180,
+                ease: "power2.inOut"
+            })
+            .to(".morphing-shape", {
+                duration: 0.5,
+                borderRadius: "20px",
+                rotation: 0,
+                ease: "power2.inOut"
+            });
+        }
+
+        // Event listeners for individual boxes
+        document.querySelectorAll('.animation-box').forEach(box => {
+            box.addEventListener('click', () => {
+                const animation = box.dataset.animation;
+                switch(animation) {
+                    case 'bounce':
+                        bounceAnimation();
+                        break;
+                    case 'rotate':
+                        rotateAnimation();
+                        break;
+                    case 'scale':
+                        scaleAnimation();
+                        break;
+                    case 'morph':
+                        morphAnimation();
+                        break;
+                }
+            });
+        });
+
+        // Play all animations
+        document.getElementById('playAll').addEventListener('click', () => {
+            const tl = gsap.timeline();
+            
+            tl.to(".bounce-element", {
+                duration: 0.6,
+                y: -30,
+                repeat: 2,
+                yoyo: true,
+                ease: "bounce.out"
+            })
+            .to(".rotate-element", {
+                duration: 1,
+                rotation: 360,
+                ease: "power2.inOut"
+            }, "-=0.3")
+            .to(".scale-element", {
+                duration: 0.8,
+                scale: 1.5,
+                repeat: 1,
+                yoyo: true,
+                ease: "elastic.out(1, 0.3)"
+            }, "-=0.5")
+            .to(".morphing-shape", {
+                duration: 0.5,
+                borderRadius: "50%",
+                rotation: 180,
+                ease: "power2.inOut"
+            }, "-=0.4")
+            .to(".morphing-shape", {
+                duration: 0.5,
+                borderRadius: "20px",
+                rotation: 0,
+                ease: "power2.inOut"
+            });
+        });
+
+        // Reset all animations
+        document.getElementById('resetAll').addEventListener('click', () => {
+            gsap.set(".animated-element, .morphing-shape", {
+                clearProps: "all"
+            });
+        });
+
+        // Continuous floating animation for circles
+        gsap.to(".circle", {
+            duration: 10,
+            y: "random(-50, 50)",
+            x: "random(-50, 50)",
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            stagger: 1
+        });
+    </script>
+</body>
+</html>
