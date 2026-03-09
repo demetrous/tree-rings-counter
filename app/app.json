@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "Tree Rings Counter",
+    "slug": "tree-rings-counter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "treerings",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a2e1a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.treerings.counter",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Used to photograph tree cross-sections for ring counting.",
+        "NSPhotoLibraryUsageDescription": "Used to select photos of tree cross-sections from your library."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#1a2e1a"
+      },
+      "package": "com.treerings.counter",
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Used to photograph tree cross-sections for ring counting."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Used to select photos of tree cross-sections from your library."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

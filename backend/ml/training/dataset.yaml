@@ -1,0 +1,11 @@
+# YOLO26 dataset config for tree ring segmentation
+# Place this file alongside the data/ directory
+
+path: ./data          # root of the dataset (relative to this file)
+train: train/images
+val:   val/images
+
+# One class: a single annual ring boundary (instance segmentation mask)
+nc: 1
+names:
+  0: ring

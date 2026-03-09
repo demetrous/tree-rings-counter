@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: tree-rings-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PRIMARY_MODEL
+        value: gemini
+      - key: FALLBACK_CONFIDENCE_THRESHOLD
+        value: "0.5"
+      - key: GEMINI_API_KEY
+        sync: false   # set in Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false   # set in Render dashboard
+      - key: ALLOWED_ORIGINS
+        value: https://tree-rings-counter.vercel.app,http://localhost:8081
+    healthCheckPath: /health
