@@ -45,7 +45,7 @@ app = FastAPI(
 # CORS — allow Expo web + mobile dev servers
 allowed_origins = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:8081,http://localhost:19006,exp://localhost:8081",
+    "http://localhost:8081,http://localhost:19006,exp://localhost:8081,https://tree-rings-counter.vercel.app",
 ).split(",")
 
 app.add_middleware(
