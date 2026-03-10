@@ -7,9 +7,23 @@ import { LogBox } from "react-native";
 
 // Ignore known NativeWind v4 web warnings
 LogBox.ignoreLogs([
-  '"shadow*" style props are deprecated',
-  "props.pointerEvents is deprecated",
+  /shadow\*/,
+  /pointerEvents/
 ]);
+
+// Also suppress them from the browser console directly
+if (typeof window !== 'undefined') {
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('shadow*') || args[0].includes('pointerEvents'))
+    ) {
+      return;
+    }
+    originalConsoleError(...args);
+  };
+}
 
 export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme();
