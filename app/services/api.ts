@@ -44,7 +44,8 @@ export async function analyzeImage(
     let resolvedType = blob.type || mimeType;
     let filename = "photo.jpg";
     
-    if (resolvedType === "image/heic" || imageUri.toLowerCase().endsWith(".heic")) {
+    // Some browsers return application/octet-stream for HEIC files
+    if (resolvedType === "image/heic" || resolvedType === "application/octet-stream" || imageUri.toLowerCase().endsWith(".heic")) {
       resolvedType = "image/heic";
       filename = "photo.heic";
     } else if (resolvedType === "image/png" || imageUri.toLowerCase().endsWith(".png")) {
