@@ -14,7 +14,10 @@ import io
 import cv2
 import numpy as np
 from PIL import Image
+import pillow_heif
 
+# Register HEIF opener with PIL
+pillow_heif.register_heif_opener()
 
 TARGET_SIZE = 1024
 
