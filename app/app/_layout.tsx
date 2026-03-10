@@ -1,6 +1,17 @@
 import "../global.css";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Platform, StyleSheet } from "react-native";
+
+// Fix for NativeWind dark mode error on web
+if (Platform.OS === "web") {
+  try {
+    // @ts-ignore - internal API
+    StyleSheet.setFlag?.("darkMode", "class");
+  } catch (e) {
+    // Ignore if not available
+  }
+}
 
 export default function RootLayout() {
   return (
