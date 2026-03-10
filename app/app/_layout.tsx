@@ -1,9 +1,15 @@
 import "../global.css";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Platform } from "react-native";
 import { useColorScheme } from "nativewind";
 import { useEffect } from "react";
+import { LogBox } from "react-native";
+
+// Ignore known NativeWind v4 web warnings
+LogBox.ignoreLogs([
+  '"shadow*" style props are deprecated. Use "boxShadow".',
+  "props.pointerEvents is deprecated. Use style.pointerEvents",
+]);
 
 export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme();

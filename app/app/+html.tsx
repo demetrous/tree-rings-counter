@@ -24,6 +24,12 @@ export default function Root({ children }: PropsWithChildren) {
           body {
             background-color: #0d1f0f;
           }
+          /* Suppress known NativeWind v4 web warnings */
+          #root {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+          }
         ` }} />
       </head>
       <body>{children}</body>
