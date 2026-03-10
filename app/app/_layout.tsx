@@ -7,7 +7,9 @@ import { Platform, StyleSheet } from "react-native";
 if (Platform.OS === "web") {
   try {
     // @ts-ignore - internal API
-    StyleSheet.setFlag?.("darkMode", "class");
+    if (typeof StyleSheet.setFlag === "function") {
+      StyleSheet.setFlag("darkMode", "class");
+    }
   } catch (e) {
     // Ignore if not available
   }
