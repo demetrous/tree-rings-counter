@@ -15,10 +15,10 @@ LogBox.ignoreLogs([
 if (typeof window !== 'undefined') {
   const originalConsoleError = console.error;
   console.error = (...args) => {
-    if (
-      typeof args[0] === 'string' &&
-      (args[0].includes('shadow*') || args[0].includes('pointerEvents'))
-    ) {
+    // React Native Web sometimes passes the warning as the first arg, 
+    // or as a format string with the warning in subsequent args
+    const msg = args.join(' ');
+    if (msg.includes('shadow*') || msg.includes('pointerEvents')) {
       return;
     }
     originalConsoleError(...args);
