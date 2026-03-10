@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi.responses import RedirectResponse
+
 from routers.analyze import router as analyze_router
 
 load_dotenv()
@@ -55,6 +57,12 @@ app.add_middleware(
 )
 
 app.include_router(analyze_router, tags=["Analysis"])
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redirect the root URL to the API documentation."""
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health", tags=["Health"])
