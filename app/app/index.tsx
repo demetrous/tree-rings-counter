@@ -34,8 +34,8 @@ export default function HomeScreen() {
   );
 
   return (
-    <View className="flex-1 bg-forest-950 items-center">
-      <SafeAreaView className="flex-1 w-full max-w-3xl">
+    <View className="flex-1 bg-forest-950">
+      <SafeAreaView className="flex-1 w-full max-w-3xl self-center">
         {/* Header */}
         <View className="px-5 pt-4 pb-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-full bg-forest-700/50 items-center justify-center">

@@ -60,10 +60,10 @@ export default function ResultScreen() {
     <SafeAreaView className="flex-1 bg-forest-950" edges={["bottom"]}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-12 items-center"
+        contentContainerClassName="pb-12"
         showsVerticalScrollIndicator={false}
       >
-        <View className="w-full max-w-3xl px-4 pt-6 gap-8">
+        <View className="w-full max-w-3xl self-center px-4 pt-6 gap-8">
           {/* Result card (Top) */}
           <View className="gap-4">
             <ResultCard result={result} />
@@ -100,7 +100,7 @@ export default function ResultScreen() {
             {imageUri ? (
               <Image
                 source={{ uri: imageUri }}
-                className="w-full aspect-square sm:aspect-video"
+                className="w-full h-64 md:h-96"
                 resizeMode="contain"
               />
             ) : null}
