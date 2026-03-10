@@ -7,7 +7,7 @@ import type { PropsWithChildren } from 'react';
  */
 export default function Root({ children }: PropsWithChildren) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
@@ -20,7 +20,7 @@ export default function Root({ children }: PropsWithChildren) {
         <ScrollViewStyleReset />
 
         {/* Add custom styles for tailwind dark mode support */}
-        <style dangerouslySetContent={{ __html: `
+        <style dangerouslySetInnerHTML={{ __html: `
           body {
             background-color: #0d1f0f;
           }

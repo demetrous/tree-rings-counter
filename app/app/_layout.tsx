@@ -1,21 +1,20 @@
 import "../global.css";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Platform, StyleSheet } from "react-native";
-
-// Fix for NativeWind dark mode error on web
-if (Platform.OS === "web") {
-  try {
-    // @ts-ignore - internal API
-    if (typeof StyleSheet.setFlag === "function") {
-      StyleSheet.setFlag("darkMode", "class");
-    }
-  } catch (e) {
-    // Ignore if not available
-  }
-}
+import { Platform } from "react-native";
+import { useColorScheme } from "nativewind";
+import { useEffect } from "react";
 
 export default function RootLayout() {
+  const { colorScheme, setColorScheme } = useColorScheme();
+
+  useEffect(() => {
+    // Force dark mode for the entire app
+    if (colorScheme !== "dark") {
+      setColorScheme("dark");
+    }
+  }, [colorScheme, setColorScheme]);
+
   return (
     <>
       <StatusBar style="light" />
