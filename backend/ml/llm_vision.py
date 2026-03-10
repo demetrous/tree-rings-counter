@@ -2,8 +2,8 @@
 LLM Vision inference for tree ring counting (Phase 1).
 
 Implements a tiered fallback strategy to balance accuracy, speed, and quotas:
-1. Gemini 3 Flash Preview (fastest, newest)
-2. Gemini 3.1 Pro Preview (most accurate, strict quotas)
+1. Gemini 3.1 Pro Preview (most accurate, strict quotas)
+2. Gemini 3 Flash Preview (fastest, newest)
 3. Gemini 2.5 Pro (stable fallback, generous quotas)
 4. Gemini 2.5 Flash (last resort)
 """
@@ -90,8 +90,8 @@ async def count_rings(image_bytes: bytes) -> LLMResult:
     Tries models in order, falling back if confidence is low or if an error (like quota exceeded) occurs.
     """
     models_to_try = [
-        "gemini-3-flash-preview",
         "gemini-3.1-pro-preview",
+        "gemini-3-flash-preview",
         "gemini-2.5-pro",
         "gemini-2.5-flash"
     ]
