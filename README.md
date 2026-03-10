@@ -40,30 +40,57 @@ tree-rings-counter/
 
 ## Getting started
 
-### 1. Backend
+Follow these steps to run the project locally. You will need to run both the backend server and the frontend app simultaneously in two separate terminal windows.
 
-```bash
-cd backend
-cp .env.example .env
-# Edit .env — add your GEMINI_API_KEY and/or OPENAI_API_KEY
+### 1. Backend Setup
 
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
+The backend is built with Python and FastAPI. It handles the image processing and communicates with the Gemini AI model.
 
-API docs available at http://localhost:8000/docs
+1. Open a new terminal in Cursor
+2. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+3. Set up your environment variables:
+   ```bash
+   # Copy the example file to create your own .env file
+   cp .env.example .env
+   ```
+   *Note: Open `backend/.env` and replace `your_gemini_api_key_here` with your actual Gemini API key.*
+4. Install the required Python packages:
+   ```bash
+   pip install -r requirements.txt
+   ```
+5. Start the backend server:
+   ```bash
+   uvicorn main:app --reload
+   ```
 
-### 2. Frontend (Expo)
+The backend is now running! You can view the API documentation at http://localhost:8000/docs. Leave this terminal running.
 
-```bash
-cd app
-npm install
-npx expo start
-```
+### 2. Frontend Setup (Expo)
 
-- Press `w` to open in browser
-- Scan the QR code with Expo Go for iOS/Android
-- Set `EXPO_PUBLIC_API_URL` in a `.env.local` file to point at your backend
+The frontend is built with React Native and Expo. It can run on the web, iOS, and Android.
+
+1. Open a **second** terminal window in Cursor (click the `+` icon in the terminal panel)
+2. Navigate to the app directory:
+   ```bash
+   cd app
+   ```
+3. Install the Node.js dependencies:
+   ```bash
+   npm install
+   ```
+4. Start the Expo development server:
+   ```bash
+   npx expo start
+   ```
+
+**How to view the app:**
+- **Web (Desktop):** Press `w` in the terminal to open the app in your web browser.
+- **Mobile (iOS/Android):** Download the **Expo Go** app on your phone and scan the QR code shown in the terminal.
+
+*Note: The frontend is configured to automatically connect to your local backend at `http://localhost:8000` by default.*
 
 ### 3. Mobile builds (EAS)
 
