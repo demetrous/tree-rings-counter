@@ -44,10 +44,10 @@ function StatItem({
 
 export default function ResultCard({ result }: ResultCardProps) {
   const modelLabel =
-    result.model_used === "gemini-3-flash"
-      ? "Gemini 3 Flash"
-      : result.model_used === "gemini-3.1-pro"
-      ? "Gemini 3.1 Pro"
+    result.model_used === "gemini-2.5-flash"
+      ? "Gemini 2.5 Flash"
+      : result.model_used === "gemini-2.5-pro"
+      ? "Gemini 2.5 Pro"
       : "YOLO26";
 
   return (

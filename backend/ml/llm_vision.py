@@ -1,8 +1,8 @@
 """
 LLM Vision inference for tree ring counting (Phase 1).
 
-Primary:  Gemini 3 Flash       (fast, cost-effective)
-Fallback: Gemini 3.1 Pro       (higher semantic accuracy)
+Primary:  Gemini 2.5 Flash     (fast, cost-effective)
+Fallback: Gemini 2.5 Pro       (higher semantic accuracy)
 
 Falls back when:
 - Primary model returns confidence below threshold
@@ -65,7 +65,7 @@ async def analyze_with_gemini(image_bytes: bytes) -> LLMResult:
     client = genai.Client(api_key=api_key)
 
     response = await client.aio.models.generate_content(
-        model="gemini-3-flash-preview",
+        model="gemini-2.5-flash",
         contents=[
             RING_COUNT_PROMPT,
             types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
@@ -81,7 +81,7 @@ async def analyze_with_gemini(image_bytes: bytes) -> LLMResult:
         ring_count=int(data["ring_count"]),
         confidence=float(data["confidence"]),
         notes=str(data.get("notes", "")),
-        model_used="gemini-3-flash",
+        model_used="gemini-2.5-flash",
     )
 
 
@@ -93,7 +93,7 @@ async def analyze_with_gemini_pro(image_bytes: bytes) -> LLMResult:
     client = genai.Client(api_key=api_key)
 
     response = await client.aio.models.generate_content(
-        model="gemini-3.1-pro-preview",
+        model="gemini-2.5-pro",
         contents=[
             RING_COUNT_PROMPT,
             types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
@@ -109,13 +109,13 @@ async def analyze_with_gemini_pro(image_bytes: bytes) -> LLMResult:
         ring_count=int(data["ring_count"]),
         confidence=float(data["confidence"]),
         notes=str(data.get("notes", "")),
-        model_used="gemini-3.1-pro",
+        model_used="gemini-2.5-pro",
     )
 
 
 async def count_rings(image_bytes: bytes) -> LLMResult:
     """
-    Count rings using Gemini 3 Flash; fall back to Gemini 3.1 Pro if needed.
+    Count rings using Gemini 2.5 Flash; fall back to Gemini 2.5 Pro if needed.
     If the fallback also fails, returns the primary result at whatever
     confidence it had rather than raising.
     """
@@ -126,17 +126,17 @@ async def count_rings(image_bytes: bytes) -> LLMResult:
             return result
         best = result
         logger.warning(
-            "Gemini Flash confidence %.2f below threshold %.2f, trying Gemini 3.1 Pro fallback",
+            "Gemini Flash confidence %.2f below threshold %.2f, trying Gemini 2.5 Pro fallback",
             result.confidence,
             FALLBACK_THRESHOLD,
         )
     except Exception as exc:
-        logger.warning("Gemini Flash failed (%s), trying Gemini 3.1 Pro fallback", exc)
+        logger.warning("Gemini Flash failed (%s), trying Gemini 2.5 Pro fallback", exc)
 
     try:
         return await analyze_with_gemini_pro(image_bytes)
     except Exception as exc:
-        logger.warning("Gemini 3.1 Pro fallback failed (%s)", exc)
+        logger.warning("Gemini 2.5 Pro fallback failed (%s)", exc)
         if best is not None:
             logger.info("Returning Gemini Flash result despite low confidence (%.2f)", best.confidence)
             return best
