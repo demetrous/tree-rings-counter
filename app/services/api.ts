@@ -39,14 +39,43 @@ export async function analyzeImage(
     // Fetch it to get the actual bytes, then create a proper File for multipart upload.
     const res = await fetch(imageUri);
     const blob = await res.blob();
-    const resolvedType = blob.type || mimeType;
-    formData.append("file", new File([blob], "photo.jpg", { type: resolvedType }));
+    
+    // Default to jpeg, but try to infer from blob type or URI extension
+    let resolvedType = blob.type || mimeType;
+    let filename = "photo.jpg";
+    
+    if (resolvedType === "image/heic" || imageUri.toLowerCase().endsWith(".heic")) {
+      resolvedType = "image/heic";
+      filename = "photo.heic";
+    } else if (resolvedType === "image/png" || imageUri.toLowerCase().endsWith(".png")) {
+      resolvedType = "image/png";
+      filename = "photo.png";
+    } else if (resolvedType === "image/webp" || imageUri.toLowerCase().endsWith(".webp")) {
+      resolvedType = "image/webp";
+      filename = "photo.webp";
+    }
+    
+    formData.append("file", new File([blob], filename, { type: resolvedType }));
   } else {
     // React Native: { uri, name, type } is handled by the native FormData polyfill.
+    let filename = "photo.jpg";
+    let resolvedType = mimeType;
+    
+    if (imageUri.toLowerCase().endsWith(".heic")) {
+      resolvedType = "image/heic";
+      filename = "photo.heic";
+    } else if (imageUri.toLowerCase().endsWith(".png")) {
+      resolvedType = "image/png";
+      filename = "photo.png";
+    } else if (imageUri.toLowerCase().endsWith(".webp")) {
+      resolvedType = "image/webp";
+      filename = "photo.webp";
+    }
+
     formData.append("file", {
       uri: imageUri,
-      name: "photo.jpg",
-      type: mimeType,
+      name: filename,
+      type: resolvedType,
     } as unknown as Blob);
   }
 
