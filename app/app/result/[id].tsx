@@ -60,51 +60,50 @@ export default function ResultScreen() {
     <SafeAreaView className="flex-1 bg-forest-950" edges={["bottom"]}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-8"
+        contentContainerClassName="pb-12 items-center"
         showsVerticalScrollIndicator={false}
       >
-        {/* Photo + ring overlay */}
-        <View className="relative">
-          {imageUri ? (
-            <Image
-              source={{ uri: imageUri }}
-              className="w-full aspect-square"
-              resizeMode="cover"
-            />
-          ) : null}
+        <View className="w-full max-w-3xl px-4 pt-6 gap-8">
+          {/* Result card (Top) */}
+          <View className="gap-4">
+            <ResultCard result={result} />
 
-          {/* Dark gradient overlay at bottom of image */}
-          <View className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-forest-950 to-transparent" />
-        </View>
+            {/* Action buttons */}
+            <View className="flex-row gap-3 mt-2">
+              <TouchableOpacity
+                onPress={() => router.back()}
+                className="flex-1 bg-forest-900 border border-forest-700/40 rounded-2xl py-4 flex-row items-center justify-center gap-2"
+              >
+                <Ionicons name="camera-outline" size={20} color="#5fa05f" />
+                <Text className="text-forest-400 font-semibold">New Photo</Text>
+              </TouchableOpacity>
 
-        {/* Ring visualization */}
-        <View className="items-center -mt-8 mb-2">
-          <View className="bg-forest-950 rounded-full p-2">
-            <RingOverlay ringCount={result.ring_count} size={200} />
+              <TouchableOpacity
+                onPress={handleShare}
+                className="flex-1 bg-forest-600 rounded-2xl py-4 flex-row items-center justify-center gap-2"
+              >
+                <Ionicons name="share-outline" size={20} color="white" />
+                <Text className="text-white font-semibold">Share</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        {/* Result card */}
-        <View className="px-4 gap-4">
-          <ResultCard result={result} />
+          {/* Ring visualization */}
+          <View className="items-center">
+            <View className="bg-forest-900/50 rounded-full p-4 border border-forest-700/30">
+              <RingOverlay ringCount={result.ring_count} size={160} />
+            </View>
+          </View>
 
-          {/* Action buttons */}
-          <View className="flex-row gap-3 mt-2">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="flex-1 bg-forest-900 border border-forest-700/40 rounded-2xl py-4 flex-row items-center justify-center gap-2"
-            >
-              <Ionicons name="camera-outline" size={20} color="#5fa05f" />
-              <Text className="text-forest-400 font-semibold">New Photo</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleShare}
-              className="flex-1 bg-forest-600 rounded-2xl py-4 flex-row items-center justify-center gap-2"
-            >
-              <Ionicons name="share-outline" size={20} color="white" />
-              <Text className="text-white font-semibold">Share</Text>
-            </TouchableOpacity>
+          {/* Photo (Bottom) */}
+          <View className="w-full rounded-2xl overflow-hidden bg-black/20 border border-forest-800/50">
+            {imageUri ? (
+              <Image
+                source={{ uri: imageUri }}
+                className="w-full aspect-square sm:aspect-video"
+                resizeMode="contain"
+              />
+            ) : null}
           </View>
         </View>
       </ScrollView>
