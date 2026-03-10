@@ -17,7 +17,7 @@ if (typeof window !== 'undefined') {
   console.error = (...args) => {
     // React Native Web sometimes passes the warning as the first arg, 
     // or as a format string with the warning in subsequent args
-    const msg = args.join(' ');
+    const msg = args.map(String).join(' ');
     if (msg.includes('shadow*') || msg.includes('pointerEvents')) {
       return;
     }
@@ -28,7 +28,7 @@ if (typeof window !== 'undefined') {
   // which is sometimes used for these deprecation messages
   const originalConsoleWarn = console.warn;
   console.warn = (...args) => {
-    const msg = args.join(' ');
+    const msg = args.map(String).join(' ');
     if (msg.includes('shadow*') || msg.includes('pointerEvents')) {
       return;
     }
