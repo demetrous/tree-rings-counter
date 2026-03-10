@@ -27,11 +27,14 @@
         "backgroundColor": "#1a2e1a"
       },
       "package": "com.treerings.counter",
-      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -47,7 +50,8 @@
         {
           "photosPermission": "Used to select photos of tree cross-sections from your library."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

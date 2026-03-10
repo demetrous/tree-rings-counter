@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export interface AnalysisResult {
@@ -8,12 +10,22 @@ export interface AnalysisResult {
   confidence: number;
   notes: string;
   annotated_image_url: string | null;
-  model_used: "gemini-2.5-flash" | "gpt-4o" | "yolo26";
+  model_used: "gemini-3-flash" | "gpt-4o" | "yolo26";
   processing_time_ms: number;
 }
 
-export interface AnalysisError {
-  detail: string;
+/** Extract a human-readable message from any FastAPI error body. */
+function extractErrorMessage(body: unknown): string {
+  if (!body || typeof body !== "object") return "Analysis failed";
+  const { detail } = body as Record<string, unknown>;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    const first = detail[0];
+    if (typeof first === "object" && first !== null) {
+      return (first as Record<string, unknown>).msg as string ?? JSON.stringify(first);
+    }
+  }
+  return "Analysis failed";
 }
 
 export async function analyzeImage(
@@ -21,11 +33,22 @@ export async function analyzeImage(
   mimeType: string = "image/jpeg"
 ): Promise<AnalysisResult> {
   const formData = new FormData();
-  formData.append("file", {
-    uri: imageUri,
-    name: "photo.jpg",
-    type: mimeType,
-  } as unknown as Blob);
+
+  if (Platform.OS === "web") {
+    // On web, expo-image-picker returns a blob: URL.
+    // Fetch it to get the actual bytes, then create a proper File for multipart upload.
+    const res = await fetch(imageUri);
+    const blob = await res.blob();
+    const resolvedType = blob.type || mimeType;
+    formData.append("file", new File([blob], "photo.jpg", { type: resolvedType }));
+  } else {
+    // React Native: { uri, name, type } is handled by the native FormData polyfill.
+    formData.append("file", {
+      uri: imageUri,
+      name: "photo.jpg",
+      type: mimeType,
+    } as unknown as Blob);
+  }
 
   const response = await fetch(`${API_BASE_URL}/analyze`, {
     method: "POST",
@@ -33,8 +56,8 @@ export async function analyzeImage(
   });
 
   if (!response.ok) {
-    const err: AnalysisError = await response.json();
-    throw new Error(err.detail ?? "Analysis failed");
+    const body = await response.json().catch(() => null);
+    throw new Error(extractErrorMessage(body));
   }
 
   return response.json() as Promise<AnalysisResult>;

@@ -7,6 +7,28 @@ alwaysApply: true
 
 Cross-platform mobile/web app (iOS, Android, Web) that estimates a tree's age from a photo of its cut cross-section by counting annual growth rings with AI.
 
+## Current state (as of March 2026)
+
+All code is written and dependencies installed. The app has been run locally for the first time (March 9, 2026).
+
+**Setup is complete:**
+- Project moved to `C:\dev\tree-rings-counter` (avoids Google Drive TAR_ENTRY_ERROR)
+- `cd app && npm install` ✅ — Expo SDK 53, expo-router v5, all packages at correct versions
+- `cd backend && pip install -r requirements.txt` ✅ — FastAPI, OpenCV, `google-genai`, OpenAI SDK
+- `backend/.env` has `GEMINI_API_KEY` filled in ✅
+- Migrated from deprecated `google-generativeai` → `google-genai` SDK ✅
+
+**To run:**
+```bash
+# Backend (from backend/)
+uvicorn main:app --reload
+
+# Frontend (from app/)
+npx expo start   # w=browser, scan QR for Expo Go
+```
+
+Phase 2 (YOLO26 fine-tuning) has not been done yet — `USE_YOLO=false` in `.env` keeps it on the LLM path.
+
 ## Project structure
 
 ```
@@ -22,69 +44,54 @@ tree-rings-counter/
 | Mobile/Web | React Native + Expo SDK 53, Expo Router v4, TypeScript | Single codebase for all platforms |
 | Styling | NativeWind v4 + Tailwind CSS v3 | v3 only — NativeWind v5 (Tailwind v4) in development |
 | Backend | FastAPI (Python 3.12) | `backend/main.py` |
-| Phase 1 AI | Gemini 2.5 Flash (primary) + GPT-4o (fallback) | `backend/ml/llm_vision.py` |
+| Phase 1 AI | Gemini 2.5 Flash (primary) + GPT-4o (fallback) | `backend/ml/llm_vision.py` — uses `google-genai` SDK (`client.aio.models.generate_content`) |
 | Phase 2 AI | YOLO26-seg fine-tuned on tree rings | `backend/ml/yolo_inference.py` |
 | Mobile builds | Expo EAS Build | `app/eas.json` |
 | Web hosting | Vercel | `expo export --platform web` |
 | Backend hosting | Render | `backend/render.yaml` |
 
-## Key decisions
+## Key design decisions
 
-- **Poláček 2023 Mask R-CNN paper**: NOT used as-is. Trained on microscope images (~18 min/image). Use its Zenodo dataset for YOLO26 fine-tuning only.
-- **YOLO26-seg over YOLO11/v8**: Released Jan 14 2026, NMS-free, 43% faster CPU inference, same Ultralytics API.
-- **Gemini 2.5 Flash over GPT-4o**: Primary due to cost/speed; GPT-4o fallback when confidence < threshold.
+- **Poláček 2023 Mask R-CNN**: NOT used as-is — trained on microscope images, ~18 min/image. Use its Zenodo dataset for YOLO26 fine-tuning only.
+- **YOLO26-seg over YOLO11/v8**: Released Jan 14 2026, NMS-free, 43% faster CPU inference, same Ultralytics API (`from ultralytics import YOLO`).
+- **Gemini 2.5 Flash over GPT-4o**: Primary (cost/speed); GPT-4o fallback when confidence < `FALLBACK_CONFIDENCE_THRESHOLD`.
 - **Render over Railway**: Better free tier RAM for ML inference (750 hr/month always-on).
-- **`@/` path alias**: Configured in `tsconfig.json` and `babel.config.js` via `babel-plugin-module-resolver`.
+- **`@/` path alias**: Configured in `tsconfig.json` + `babel.config.js` via `babel-plugin-module-resolver`.
 
 ## Frontend key files
 
 - `app/app/_layout.tsx` — Expo Router root layout, dark forest-green theme
 - `app/app/index.tsx` — home screen, triggers photo capture + calls `analyzeImage()`
-- `app/app/result/[id].tsx` — result screen with photo, SVG ring overlay, age card, share
-- `app/components/CameraCapture.tsx` — camera viewfinder with circle guidance overlay + gallery picker
-- `app/components/RingOverlay.tsx` — SVG concentric ring visualization
+- `app/app/result/[id].tsx` — result screen: photo, SVG ring overlay, age card, share button
+- `app/components/CameraCapture.tsx` — camera viewfinder with concentric circle guidance overlay + gallery picker
+- `app/components/RingOverlay.tsx` — SVG cross-section with proportional concentric rings
 - `app/components/ResultCard.tsx` — age estimate, confidence badge, model used, AI notes
 - `app/services/api.ts` — `analyzeImage(uri)` → `POST /analyze` → `AnalysisResult`
 
 ## Backend key files
 
-- `backend/routers/analyze.py` — `POST /analyze`, validates upload, preprocesses, routes to LLM or YOLO
-- `backend/ml/preprocess.py` — CLAHE + Hough circle detection + 1024×1024 crop
-- `backend/ml/llm_vision.py` — Gemini 2.5 Flash primary, GPT-4o fallback
-- `backend/ml/yolo_inference.py` — YOLO26-seg Phase 2 (swap with `USE_YOLO=true` in `.env`)
+- `backend/routers/analyze.py` — `POST /analyze`: validates upload, preprocesses, routes to LLM or YOLO
+- `backend/ml/preprocess.py` — CLAHE contrast enhancement + Hough circle crop + 1024×1024 resize
+- `backend/ml/llm_vision.py` — Gemini 2.5 Flash primary, GPT-4o fallback, returns structured JSON
+- `backend/ml/yolo_inference.py` — YOLO26-seg Phase 2 (activated by `USE_YOLO=true` in `.env`)
 - `backend/ml/training/train_yolo26.py` — fine-tuning script
 - `backend/ml/training/convert_polacek_to_yolo.py` — converts Poláček CVAT annotations → YOLO format
 
-## Environment variables (backend/.env)
+## Environment variables (`backend/.env`)
 
 ```
-GEMINI_API_KEY=        # from aistudio.google.com
-OPENAI_API_KEY=        # optional, GPT-4o fallback
-PRIMARY_MODEL=gemini   # or openai
+GEMINI_API_KEY=        # required — from aistudio.google.com
+OPENAI_API_KEY=        # optional — GPT-4o fallback
+PRIMARY_MODEL=gemini
 FALLBACK_CONFIDENCE_THRESHOLD=0.5
 USE_YOLO=false         # set true + YOLO_WEIGHTS_PATH for Phase 2
+YOLO_WEIGHTS_PATH=ml/weights/yolo26n-seg-tree-rings.pt
+ALLOWED_ORIGINS=http://localhost:8081,...
 ```
 
-## Running locally
+## Phase 2 YOLO training (when ready)
 
-```bash
-# Backend
-cd backend && pip install -r requirements.txt
-cp .env.example .env  # then add API keys
-uvicorn main:app --reload
-
-# Frontend
-cd app && npm install
-npx expo start   # w=browser, scan QR for mobile
-```
-
-## npm install note
-
-**Do NOT run `npm install` inside a Google Drive-synced folder** — Google Drive's virtual filesystem blocks concurrent writes causing TAR_ENTRY_ERROR failures. Move the project to C: or pause Google Drive sync first.
-
-## Phase 2 YOLO training
-
-1. Download Poláček dataset from https://zenodo.org/record/8428752
-2. `python backend/ml/training/convert_polacek_to_yolo.py --cvat_xml ... --images_dir ... --output_dir data/train`
-3. `python backend/ml/training/train_yolo26.py`
-4. Set `USE_YOLO=true` and `YOLO_WEIGHTS_PATH=ml/weights/.../best.pt` in `.env`
+1. Download Poláček dataset: https://zenodo.org/record/8428752
+2. Convert annotations: `python backend/ml/training/convert_polacek_to_yolo.py --cvat_xml ... --images_dir ... --output_dir data/train`
+3. Train: `python backend/ml/training/train_yolo26.py`
+4. Set `USE_YOLO=true` and `YOLO_WEIGHTS_PATH=ml/weights/.../best.pt` in `backend/.env`

@@ -16,7 +16,8 @@ import os
 import re
 from dataclasses import dataclass
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
@@ -62,16 +63,15 @@ async def analyze_with_gemini(image_bytes: bytes) -> LLMResult:
     if not api_key:
         raise EnvironmentError("GEMINI_API_KEY is not set")
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-flash-preview-05-20")
+    client = genai.Client(api_key=api_key)
 
-    import PIL.Image
-    import io
-    pil_image = PIL.Image.open(io.BytesIO(image_bytes))
-
-    response = model.generate_content(
-        [RING_COUNT_PROMPT, pil_image],
-        generation_config=genai.GenerationConfig(
+    response = await client.aio.models.generate_content(
+        model="gemini-3-flash-preview",
+        contents=[
+            RING_COUNT_PROMPT,
+            types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+        ],
+        config=types.GenerateContentConfig(
             temperature=0.1,
             response_mime_type="application/json",
         ),
@@ -82,7 +82,7 @@ async def analyze_with_gemini(image_bytes: bytes) -> LLMResult:
         ring_count=int(data["ring_count"]),
         confidence=float(data["confidence"]),
         notes=str(data.get("notes", "")),
-        model_used="gemini-2.5-flash",
+        model_used="gemini-3-flash",
     )
 
 
@@ -125,34 +125,67 @@ async def analyze_with_gpt4o(image_bytes: bytes) -> LLMResult:
     )
 
 
+def _openai_key_looks_valid() -> bool:
+    """Return False if the OpenAI key is missing or still a placeholder."""
+    key = os.getenv("OPENAI_API_KEY", "")
+    return bool(key) and not key.startswith("your_") and key != "sk-..."
+
+
 async def count_rings(image_bytes: bytes) -> LLMResult:
     """
     Count rings using Gemini 2.5 Flash; fall back to GPT-4o if needed.
+    If the fallback also fails (e.g. no valid OpenAI key), returns the
+    primary result at whatever confidence it had rather than raising.
     """
     primary = os.getenv("PRIMARY_MODEL", "gemini").lower()
 
     if primary == "gemini":
+        best: LLMResult | None = None
         try:
             result = await analyze_with_gemini(image_bytes)
             if result.confidence >= FALLBACK_THRESHOLD:
                 return result
+            best = result
             logger.warning(
-                "Gemini confidence %.2f below threshold %.2f, falling back to GPT-4o",
+                "Gemini confidence %.2f below threshold %.2f, trying GPT-4o fallback",
                 result.confidence,
                 FALLBACK_THRESHOLD,
             )
         except Exception as exc:
-            logger.warning("Gemini failed (%s), falling back to GPT-4o", exc)
+            logger.warning("Gemini failed (%s), trying GPT-4o fallback", exc)
 
-        return await analyze_with_gpt4o(image_bytes)
+        if not _openai_key_looks_valid():
+            logger.warning("OPENAI_API_KEY not configured — skipping GPT-4o fallback")
+            if best is not None:
+                return best
+            raise EnvironmentError(
+                "GEMINI_API_KEY returned low-confidence result and OPENAI_API_KEY is not set"
+            )
+
+        try:
+            return await analyze_with_gpt4o(image_bytes)
+        except Exception as exc:
+            logger.warning("GPT-4o fallback failed (%s)", exc)
+            if best is not None:
+                logger.info("Returning Gemini result despite low confidence (%.2f)", best.confidence)
+                return best
+            raise
 
     # openai primary
+    best = None
     try:
         result = await analyze_with_gpt4o(image_bytes)
         if result.confidence >= FALLBACK_THRESHOLD:
             return result
-        logger.warning("GPT-4o confidence low, falling back to Gemini")
+        best = result
+        logger.warning("GPT-4o confidence low, trying Gemini fallback")
     except Exception as exc:
-        logger.warning("GPT-4o failed (%s), falling back to Gemini", exc)
+        logger.warning("GPT-4o failed (%s), trying Gemini fallback", exc)
 
-    return await analyze_with_gemini(image_bytes)
+    try:
+        return await analyze_with_gemini(image_bytes)
+    except Exception as exc:
+        logger.warning("Gemini fallback also failed (%s)", exc)
+        if best is not None:
+            return best
+        raise
