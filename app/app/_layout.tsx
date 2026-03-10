@@ -7,8 +7,8 @@ import { LogBox } from "react-native";
 
 // Ignore known NativeWind v4 web warnings
 LogBox.ignoreLogs([
-  '"shadow*" style props are deprecated. Use "boxShadow".',
-  "props.pointerEvents is deprecated. Use style.pointerEvents",
+  '"shadow*" style props are deprecated',
+  "props.pointerEvents is deprecated",
 ]);
 
 export default function RootLayout() {
