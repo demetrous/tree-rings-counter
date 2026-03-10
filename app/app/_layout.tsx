@@ -23,6 +23,17 @@ if (typeof window !== 'undefined') {
     }
     originalConsoleError(...args);
   };
+  
+  // React DevTools overrides console.error, so we also need to intercept console.warn
+  // which is sometimes used for these deprecation messages
+  const originalConsoleWarn = console.warn;
+  console.warn = (...args) => {
+    const msg = args.join(' ');
+    if (msg.includes('shadow*') || msg.includes('pointerEvents')) {
+      return;
+    }
+    originalConsoleWarn(...args);
+  };
 }
 
 export default function RootLayout() {
