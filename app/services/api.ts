@@ -10,7 +10,7 @@ export interface AnalysisResult {
   confidence: number;
   notes: string;
   annotated_image_url: string | null;
-  model_used: "gemini-3-flash" | "gpt-4o" | "yolo26";
+  model_used: "gemini-3-flash" | "gemini-3.1-pro" | "yolo26";
   processing_time_ms: number;
 }
 

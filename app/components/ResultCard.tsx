@@ -46,8 +46,8 @@ export default function ResultCard({ result }: ResultCardProps) {
   const modelLabel =
     result.model_used === "gemini-3-flash"
       ? "Gemini 3 Flash"
-      : result.model_used === "gpt-4o"
-      ? "GPT-4o"
+      : result.model_used === "gemini-3.1-pro"
+      ? "Gemini 3.1 Pro"
       : "YOLO26";
 
   return (

@@ -1,8 +1,8 @@
 """
 LLM Vision inference for tree ring counting (Phase 1).
 
-Primary:  Gemini 2.5 Flash  (fast, cost-effective)
-Fallback: GPT-4o            (higher semantic accuracy)
+Primary:  Gemini 3 Flash       (fast, cost-effective)
+Fallback: Gemini 3.1 Pro       (higher semantic accuracy)
 
 Falls back when:
 - Primary model returns confidence below threshold
@@ -18,7 +18,6 @@ from dataclasses import dataclass
 
 from google import genai
 from google.genai import types
-from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -86,106 +85,59 @@ async def analyze_with_gemini(image_bytes: bytes) -> LLMResult:
     )
 
 
-async def analyze_with_gpt4o(image_bytes: bytes) -> LLMResult:
-    api_key = os.getenv("OPENAI_API_KEY")
+async def analyze_with_gemini_pro(image_bytes: bytes) -> LLMResult:
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise EnvironmentError("OPENAI_API_KEY is not set")
+        raise EnvironmentError("GEMINI_API_KEY is not set")
 
-    client = AsyncOpenAI(api_key=api_key)
-    b64 = base64.b64encode(image_bytes).decode()
+    client = genai.Client(api_key=api_key)
 
-    response = await client.chat.completions.create(
-        model="gpt-4o",
-        max_tokens=256,
-        temperature=0.1,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": RING_COUNT_PROMPT},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{b64}",
-                            "detail": "high",
-                        },
-                    },
-                ],
-            }
+    response = await client.aio.models.generate_content(
+        model="gemini-3.1-pro-preview",
+        contents=[
+            RING_COUNT_PROMPT,
+            types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
         ],
+        config=types.GenerateContentConfig(
+            temperature=0.1,
+            response_mime_type="application/json",
+        ),
     )
 
-    text = response.choices[0].message.content or ""
-    data = _parse_llm_json(text)
+    data = _parse_llm_json(response.text)
     return LLMResult(
         ring_count=int(data["ring_count"]),
         confidence=float(data["confidence"]),
         notes=str(data.get("notes", "")),
-        model_used="gpt-4o",
+        model_used="gemini-3.1-pro",
     )
-
-
-def _openai_key_looks_valid() -> bool:
-    """Return False if the OpenAI key is missing or still a placeholder."""
-    key = os.getenv("OPENAI_API_KEY", "")
-    return bool(key) and not key.startswith("your_") and key != "sk-..."
 
 
 async def count_rings(image_bytes: bytes) -> LLMResult:
     """
-    Count rings using Gemini 2.5 Flash; fall back to GPT-4o if needed.
-    If the fallback also fails (e.g. no valid OpenAI key), returns the
-    primary result at whatever confidence it had rather than raising.
+    Count rings using Gemini 3 Flash; fall back to Gemini 3.1 Pro if needed.
+    If the fallback also fails, returns the primary result at whatever
+    confidence it had rather than raising.
     """
-    primary = os.getenv("PRIMARY_MODEL", "gemini").lower()
-
-    if primary == "gemini":
-        best: LLMResult | None = None
-        try:
-            result = await analyze_with_gemini(image_bytes)
-            if result.confidence >= FALLBACK_THRESHOLD:
-                return result
-            best = result
-            logger.warning(
-                "Gemini confidence %.2f below threshold %.2f, trying GPT-4o fallback",
-                result.confidence,
-                FALLBACK_THRESHOLD,
-            )
-        except Exception as exc:
-            logger.warning("Gemini failed (%s), trying GPT-4o fallback", exc)
-
-        if not _openai_key_looks_valid():
-            logger.warning("OPENAI_API_KEY not configured — skipping GPT-4o fallback")
-            if best is not None:
-                return best
-            raise EnvironmentError(
-                "GEMINI_API_KEY returned low-confidence result and OPENAI_API_KEY is not set"
-            )
-
-        try:
-            return await analyze_with_gpt4o(image_bytes)
-        except Exception as exc:
-            logger.warning("GPT-4o fallback failed (%s)", exc)
-            if best is not None:
-                logger.info("Returning Gemini result despite low confidence (%.2f)", best.confidence)
-                return best
-            raise
-
-    # openai primary
-    best = None
+    best: LLMResult | None = None
     try:
-        result = await analyze_with_gpt4o(image_bytes)
+        result = await analyze_with_gemini(image_bytes)
         if result.confidence >= FALLBACK_THRESHOLD:
             return result
         best = result
-        logger.warning("GPT-4o confidence low, trying Gemini fallback")
+        logger.warning(
+            "Gemini Flash confidence %.2f below threshold %.2f, trying Gemini 3.1 Pro fallback",
+            result.confidence,
+            FALLBACK_THRESHOLD,
+        )
     except Exception as exc:
-        logger.warning("GPT-4o failed (%s), trying Gemini fallback", exc)
+        logger.warning("Gemini Flash failed (%s), trying Gemini 3.1 Pro fallback", exc)
 
     try:
-        return await analyze_with_gemini(image_bytes)
+        return await analyze_with_gemini_pro(image_bytes)
     except Exception as exc:
-        logger.warning("Gemini fallback also failed (%s)", exc)
+        logger.warning("Gemini 3.1 Pro fallback failed (%s)", exc)
         if best is not None:
+            logger.info("Returning Gemini Flash result despite low confidence (%.2f)", best.confidence)
             return best
         raise
